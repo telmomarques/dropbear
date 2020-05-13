@@ -39,7 +39,7 @@ jobs:
       run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm
 
     - name: Compile
-      run: make
+      run: make PROGRAMS="dropbear"
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v1
