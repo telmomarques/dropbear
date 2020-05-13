@@ -20,14 +20,14 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v2
 
-#    - name: Add ARM architecture to APT
-#      run: sudo dpkg --add-architecture armhf
+    - name: Add ARM architecture to APT
+      run: sudo dpkg --add-architecture armhf
 
-#    - name: Setup APT repositories for ARM
-#      run: sudo mv sources.list /etc/apt/sources.list
+    - name: Setup APT repositories for ARM
+      run: sudo mv sources.list /etc/apt/sources.list
 
-#    - name: Update APT repositories
-#      run: sudo apt-get update
+    - name: Update APT repositories
+      run: sudo apt-get update
 
     - name: Install ARM cross compiler
       run: sudo apt-get -y install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
