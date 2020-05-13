@@ -32,8 +32,8 @@ jobs:
     - name: Install ARM cross compiler
       run: sudo apt-get -y install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
-#    - name: Install dependencies
-#      run: sudo apt-get -y install libssl-dev:armhf
+    - name: Install dependencies
+      run: sudo apt-get install zlib1g-dev:armhf
 
     - name: Configure
       run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm
