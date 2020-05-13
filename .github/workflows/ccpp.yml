@@ -36,7 +36,7 @@ jobs:
 #      run: sudo apt-get -y install libssl-dev:armhf
 
     - name: Configure
-      run: CC=arm-linux-gnueabihf-gcc ./configure --host=arm
+      run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm
 
     - name: Compile
       run: make
