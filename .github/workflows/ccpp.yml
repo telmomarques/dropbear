@@ -36,7 +36,7 @@ jobs:
       run: sudo apt-get install zlib1g-dev:armhf
 
     - name: Configure
-      run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm
+      run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm --disable-lastlog
 
     - name: Compile
       run: make PROGRAMS="dropbear"
