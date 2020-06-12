@@ -36,6 +36,7 @@
 #include "auth.h"
 #include "runopts.h"
 #include "dbrandom.h"
+#include "cJSON.h"
 
 static int checkusername(const char *username, unsigned int userlen);
 
@@ -230,12 +231,51 @@ static int check_group_membership(gid_t check_gid, const char* username, gid_t u
 /* Check that the username exists and isn't disallowed (root), and has a valid shell.
  * returns DROPBEAR_SUCCESS on valid username, DROPBEAR_FAILURE on failure */
 static int checkusername(const char *username, unsigned int userlen) {
-
+	cJSON* user = NULL;
+	char* password = NULL;
+	int userFound = 0;
 	char* listshell = NULL;
 	char* usershell = NULL;
 	uid_t uid;
 
 	TRACE(("enter checkusername"))
+
+	cJSON* users = cJSON_GetObjectItemCaseSensitive(json_config, "users");
+	
+	if (users == NULL) {
+		return DROPBEAR_FAILURE;
+	}
+
+	cJSON_ArrayForEach(user, users) {
+		cJSON* json_username = cJSON_GetObjectItemCaseSensitive(user, "username");
+		cJSON* json_password = cJSON_GetObjectItemCaseSensitive(user, "password");
+
+		if (json_username != NULL && json_password != NULL && strcmp(username, json_username->valuestring) == 0) {
+			userFound = 1;
+
+			password = m_strdup(json_password->valuestring);
+
+			cJSON* json_system_username = cJSON_GetObjectItemCaseSensitive(user, "systemUsername");
+			
+			username = "root";
+			if (json_system_username != NULL) {
+				username = json_system_username->valuestring;
+			}
+
+			userlen = strlen(username);
+
+			goto end;
+		}
+    }
+
+end:
+	if (userFound == 0) {
+		TRACE(("leave checkusername: user '%s' doesn't exist", username))
+		dropbear_log(LOG_WARNING, "Login attempt for nonexistent json config user from %s", svr_ses.addrstring);
+		ses.authstate.checkusername_failed = 1;
+		return DROPBEAR_FAILURE;
+	}
+
 	if (userlen > MAX_USERNAME_LEN) {
 		return DROPBEAR_FAILURE;
 	}
@@ -247,7 +287,7 @@ static int checkusername(const char *username, unsigned int userlen) {
 
 	if (ses.authstate.username == NULL) {
 		/* first request */
-		fill_passwd(username);
+		fill_passwd(username, password);
 		ses.authstate.username = m_strdup(username);
 	} else {
 		/* check username hasn't changed */

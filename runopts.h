@@ -30,6 +30,7 @@
 #include "buffer.h"
 #include "auth.h"
 #include "tcpfwd.h"
+#include "cJSON.h"
 
 typedef struct runopts {
 
@@ -104,6 +105,7 @@ typedef struct svr_runopts {
 	int noauthpass;
 	int norootpass;
 	int allowblankpass;
+	char *config_file;
 	unsigned int maxauthtries;
 
 #if DROPBEAR_SVR_REMOTETCPFWD
@@ -128,6 +130,7 @@ typedef struct svr_runopts {
 } svr_runopts;
 
 extern svr_runopts svr_opts;
+extern cJSON* json_config;
 
 void svr_getopts(int argc, char ** argv);
 void loadhostkeys(void);

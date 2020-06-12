@@ -311,12 +311,12 @@ static void cleanupchansess(const struct Channel *channel) {
 	unsigned int i;
 	struct logininfo *li;
 
-	TRACE(("enter closechansess"))
+	TRACE(("enter cleanupchansess"))
 
 	chansess = (struct ChanSess*)channel->typedata;
 
 	if (chansess == NULL) {
-		TRACE(("leave closechansess: chansess == NULL"))
+		TRACE(("leave cleanupchansess: chansess == NULL"))
 		return;
 	}
 

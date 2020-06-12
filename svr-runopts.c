@@ -29,10 +29,12 @@
 #include "dbutil.h"
 #include "algo.h"
 #include "ecdsa.h"
+#include "cJSON.h"
 
 #include <grp.h>
 
 svr_runopts svr_opts; /* GLOBAL */
+cJSON* json_config; /* GLOBAL */
 
 static void printhelp(const char * progname);
 static void addportandaddress(const char* spec);
@@ -100,6 +102,7 @@ static void printhelp(const char * progname) {
 					"-K <keepalive>  (0 is never, default %d, in seconds)\n"
 					"-I <idle_timeout>  (0 is never, default %d, in seconds)\n"
 					"-V    Version\n"
+					"-C Config file location\n"
 #if DEBUG_TRACE
 					"-v		verbose (compiled with DEBUG_TRACE)\n"
 #endif
@@ -128,6 +131,7 @@ void svr_getopts(int argc, char ** argv) {
 	char* idle_timeout_arg = NULL;
 	char* maxauthtries_arg = NULL;
 	char* keyfile = NULL;
+	char* configfile_arg = NULL;
 	char c;
 
 
@@ -144,6 +148,7 @@ void svr_getopts(int argc, char ** argv) {
 	svr_opts.noauthpass = 0;
 	svr_opts.norootpass = 0;
 	svr_opts.allowblankpass = 0;
+	svr_opts.config_file = "/mnt/sdcard/hacks/ssh-server/config/config.json";
 	svr_opts.maxauthtries = MAX_AUTH_TRIES;
 	svr_opts.inetdmode = 0;
 	svr_opts.portcount = 0;
@@ -265,6 +270,9 @@ void svr_getopts(int argc, char ** argv) {
 					break;
 				case 'B':
 					svr_opts.allowblankpass = 1;
+					break;
+				case 'C':
+					next = &configfile_arg;
 					break;
 #endif
 				case 'h':
@@ -393,6 +401,36 @@ void svr_getopts(int argc, char ** argv) {
 
 	if (svr_opts.forced_command) {
 		dropbear_log(LOG_INFO, "Forced command set to '%s'", svr_opts.forced_command);
+	}
+
+	if(configfile_arg) {
+		svr_opts.config_file = configfile_arg;
+	}
+
+	parseconfigfile();
+}
+
+void parseconfigfile() {
+	char* buffer;
+
+	FILE *f = fopen(svr_opts.config_file, "rb");
+	if(f == NULL) {
+		dropbear_exit("Configuration file does not exist (%s)", svr_opts.config_file);
+	}
+
+	fseek(f, 0, SEEK_END);
+	long fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	buffer = malloc(fsize + 1);
+	fread(buffer, 1, fsize, f);
+	fclose(f);
+
+	buffer[fsize] = 0;
+
+	json_config = cJSON_Parse(buffer);
+	if (json_config == NULL) {
+		dropbear_exit("Invalid configuration file (%s)", svr_opts.config_file);
 	}
 }
 

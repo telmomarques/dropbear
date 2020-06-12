@@ -49,7 +49,7 @@ void ignore_recv_response(void);
 void update_channel_prio(void);
 
 const char* get_user_shell(void);
-void fill_passwd(const char* username);
+void fill_passwd(const char* username, const char* password);
 
 /* Server */
 void svr_session(int sock, int childpipe) ATTRIB_NORETURN;
