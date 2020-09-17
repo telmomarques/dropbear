@@ -49,11 +49,11 @@ jobs:
     - name: Configure libc
       run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm --disable-lastlog --enable-static
 
-    - name: Copy libc executable
-      run: mkdir -p bin/libc && cp dropbear bin/libc/
-
     - name: Compile libc
       run: make PROGRAMS="dropbear"
+
+    - name: Copy libc executable
+      run: mkdir -p bin/libc && cp dropbear bin/libc/
 
     - name: Configure uClibc
       run: make clean && autoreconf && CC="$GITHUB_WORKSPACE/output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc" ./configure --host=arm --disable-lastlog --disable-harden --enable-static
