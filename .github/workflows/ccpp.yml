@@ -32,14 +32,40 @@ jobs:
     - name: Install ARM cross compiler
       run: sudo apt-get -y install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
+    - name: Get uClibc toolchain
+      uses: i3h/download-release-asset@v1
+      with:
+        owner: telmomarques
+        repo: uClibc-toolchain
+        tag: latest
+        file: toolchain.tar
+
+    - name: Install uClibc ARM cross compiler
+      run: tar -xf toolchain.tar
+
     - name: Install dependencies
       run: sudo apt-get install libgcc-s1:armhf gcc-10-base:armhf libgcc1:armhf libc6:armhf libc6-dev:armhf zlib1g:armhf zlib1g-dev:armhf
 
-    - name: Configure
+    - name: Configure libc
       run: autoreconf && CC=arm-linux-gnueabihf-gcc ./configure --host=arm --disable-lastlog --enable-static
 
-    - name: Compile
+    - name: Copy libc executable
+      run: mkdir -p bin/libc && cp dropbear bin/libc/
+
+    - name: Compile libc
       run: make PROGRAMS="dropbear"
+
+    - name: Configure uClibc
+      run: make clean && autoreconf && CC="$GITHUB_WORKSPACE/output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc" ./configure --host=arm --disable-lastlog --disable-harden --enable-static
+
+    - name: Compile uClibc
+      run: make PROGRAMS="dropbear"
+
+    - name: Copy uClibc executable
+      run: mkdir -p bin/uclibc && cp dropbear bin/uclibc/
+
+    - name: Package binaries
+      run: cd bin && tar -cvf dropbear.tar *
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v1
@@ -53,7 +79,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
-        artifacts: dropbear
+        artifacts: bin/dropbear.tar
         
     - name: Update latest-rc tag
       if: env.isReleaseCandidate == 'true'
@@ -64,14 +90,14 @@ jobs:
         allowUpdates: true
         replacesArtifacts: true
         prerelease: true
-        artifacts: dropbear
+        artifacts: bin/dropbear.tar
 
     - name: Release (final)
       if: env.isFinalRelease == 'true'
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: dropbear
+        artifacts: bin/dropbear.tar
         
     - name: Update latest tag
       if: env.isFinalRelease == 'true'
@@ -81,4 +107,4 @@ jobs:
         tag: latest
         allowUpdates: true
         replacesArtifacts: true
-        artifacts: dropbear
+        artifacts: bin/dropbear.tar
