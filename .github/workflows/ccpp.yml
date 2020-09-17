@@ -71,7 +71,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: dropbear
-        path: dropbear
+        path: bin/dropbear.tar
 
     - name: Release (pre-release)
       if: env.isReleaseCandidate == 'true'
